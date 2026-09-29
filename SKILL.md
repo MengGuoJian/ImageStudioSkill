@@ -8,6 +8,8 @@ description: 通过 ImageStudio（鱼舟生图）本地服务的 API 生成或�
 通过本地 **ImageStudio 服务**（默认 `http://127.0.0.1:8020`）生图。服务端负责号池 key
 轮询与会员额度扣减。
 
+> 同步说明：本技能的权威源在 FishImagen 主仓库 `skill/imagestudio`，改完后运行 `sync-skill.bat` 同步到本仓库。
+
 ## 前置条件
 
 - **ImageStudio 服务已启动**（双击 `ImageStudio.exe` 或 `start.bat`；没启动时脚本会明确报错）
