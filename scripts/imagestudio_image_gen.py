@@ -156,6 +156,35 @@ def request_json(base_url: str, api_key: str, path: str, payload: dict | None = 
     raise ApiError(f"请求失败：{last_error}")
 
 
+def masked_account(value: str) -> str:
+    account = value.strip()
+    if not account:
+        return "未登记账号"
+    if "@" in account:
+        user, domain = account.rsplit("@", 1)
+        return f"{user[:1]}***@{domain}" if user and domain else "已登记邮箱"
+    digits = "".join(char for char in account if char.isdigit())
+    if len(digits) >= 7:
+        return f"{digits[:3]}****{digits[-4:]}"
+    return f"{account[:1]}***" if len(account) > 1 else "已登记账号"
+
+
+def quota_status(base_url: str, api_key: str) -> str:
+    player = request_json(base_url, api_key, "/api/player/status", None, method="GET", timeout=30, retries=1)
+    if player.get("player_mode"):
+        current = player.get("current_pool") or {}
+        contact = str(current.get("preferred_contact") or current.get("phone") or current.get("email") or "")
+        remaining = max(0, int(player.get("remaining") or 0))
+        days = max(0, int(player.get("days_left") or 0))
+        note = f" · {player.get('reason') or '不可生图'}" if player.get("locked") or player.get("device_locked") else ""
+        return f"当前账号: {masked_account(contact)} · 剩余生图额度: {remaining} 次 · 剩余 {days} 天{note}"
+    membership = request_json(base_url, api_key, "/api/membership/status", None, method="GET", timeout=30, retries=1)
+    name = masked_account(str(membership.get("name") or "")) if not membership.get("is_admin") else "本机管理员"
+    remaining = "不限" if membership.get("quota_unlimited") else f"{max(0, int(membership.get('quota_remaining') or 0))} 次"
+    days = "永久" if membership.get("days_remaining") is None else f"{max(0, int(membership['days_remaining']))} 天"
+    return f"当前账号: {name} · 剩余生图额度: {remaining} · 剩余 {days}"
+
+
 def multipart_encode(fields: dict[str, str], files: list[tuple[str, str, bytes, str]]) -> tuple[bytes, str]:
     boundary = f"----imagestudio{uuid.uuid4().hex}"
     buffer = []
@@ -273,18 +302,9 @@ def main() -> int:
     if args.check:
         print(f"服务地址: {base_url}")
         try:
-            status = request_json(base_url, api_key, "/api/membership/status", None, method="GET",
-                                  timeout=30, retries=1)
-            if status.get("is_admin"):
-                print("身份: 管理员（不限天数/次数）")
-            else:
-                days = status.get("days_remaining")
-                quota = status.get("quota_remaining")
-                quota_text = "不限" if status.get("quota_unlimited") else f"{quota} 次"
-                days_text = "永久" if days is None else f"{days} 天"
-                print(f"身份: {status.get('name') or '会员'} · 剩余 {days_text} · 生图余额 {quota_text}")
+            print(quota_status(base_url, api_key))
         except ApiError as exc:
-            print(f"会员状态查询失败: {exc}", file=sys.stderr)
+            print(f"额度查询失败: {exc}", file=sys.stderr)
             return 1
         return 0
 
@@ -317,6 +337,10 @@ def main() -> int:
 
     for path in save_result(result, base_url, args.out, args.timeout):
         print(path)
+    try:
+        print(quota_status(base_url, api_key))
+    except ApiError as exc:
+        print(f"生图已完成，但最新额度查询失败: {exc}", file=sys.stderr)
     return 0
 
 
