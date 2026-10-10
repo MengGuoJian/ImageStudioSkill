@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
-"""ImageStudio API 生图脚本：文生图 / 图生图 / 会员状态查询。
+"""调用 ImageStudio 服务接口：文生图 / 图生图 / 会员状态查询。
 
-用法（与本仓库 agnesimagegen 技能同款习惯）：
+仅访问 ImageStudio 本地或自建服务，不直连 ChatGPT/其他上游生图 API。
+--base-url 是 ImageStudio 服务地址；--api-key 是该服务的会员访问密钥。
+
+用法：
     python imagestudio_image_gen.py --prompt "一只戴围巾的橘猫" --size 1024x1024 --out out.png
     python imagestudio_image_gen.py --prompt "改成绿色" --image ref.png --out out-v2.png
     python imagestudio_image_gen.py --check
@@ -35,7 +38,7 @@ def arguments() -> argparse.Namespace:
     prompt = parser.add_mutually_exclusive_group()
     prompt.add_argument("--prompt")
     prompt.add_argument("--prompt-file", type=Path)
-    parser.add_argument("--image", action="append", default=[], help="参考图路径/URL/data URI，可重复")
+    parser.add_argument("--image", action="append", default=[], help="参考图本地路径或 http(s) URL，可重复（最多 4 张）")
     parser.add_argument("--size", default="1024x1024", help="宽x高，例如 1024x1024")
     parser.add_argument("--n", type=int, default=1, choices=range(1, 5), help="生成数量 1-4")
     parser.add_argument("--model", default="")
@@ -93,13 +96,15 @@ def friendly_error(status_code: int, detail: str) -> str:
             return "会员密钥已过期：请到 ImageStudio 会员中心激活新密钥（401）。"
         return "密钥无效或已被停用：请核对会员密钥；本机使用可不配置密钥（401）。"
     if status_code == 429:
-        if "余额" in detail or "quota" in lowered:
+        if "生图余额" in detail or "会员" in detail:
             return "生图余额已用完：请联系管理员续费或清零（429）。"
-        return "服务端号池没有可用 key：请联系管理员补充（429）。"
+        return "服务端暂时无法生图：请联系管理员检查 ChatGPT 账号池或稍后重试（429）。"
+    if status_code == 403 and "quota_locked" in lowered:
+        return "玩家子库额度已用完或到期：请在 ImageStudio 刷新会员额度或联系管理员（403）。"
     if status_code == 404:
         return f"接口不存在：确认服务地址正确（404）。{detail}"
     if status_code >= 500:
-        return f"上游服务错误，稍后重试（{status_code}）。{detail[:200]}"
+        return f"ImageStudio 服务暂时不可用，稍后重试（{status_code}）。{detail[:200]}"
     return f"请求失败（HTTP {status_code}）：{detail[:300]}"
 
 
