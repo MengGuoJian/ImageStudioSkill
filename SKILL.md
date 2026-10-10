@@ -5,15 +5,15 @@ description: 通过 ImageStudio（鱼舟生图）本地服务接口生成或编�
 
 # ImageStudio API 生图（鱼舟生图）
 
-通过本地 **ImageStudio 服务**（默认 `http://127.0.0.1:8020`）的 `/v1/images/*` 接口生图。服务端配置 `image_api.engine=chatgpt` 时使用 ChatGPT 账号池；技能不调用 ChatGPT 或其他上游地址，也不接收上游账号凭证。`--base-url` 仅指 ImageStudio 服务地址。
+通过本地 **ImageStudio 服务**（默认 `http://127.0.0.1:8020`）的 `/v1/images/*` 接口生图。服务端仅使用 ChatGPT 账号池；技能不直接调用上游，也不接收上游账号凭证。`--base-url` 仅指 ImageStudio 服务地址。
 
 > 同步说明：本技能的权威源在 FishImagen 主仓库 `skill/imagestudio`，改完后运行 `sync-skill.bat` 同步到本仓库。
 
 ## 前置条件
 
 - **ImageStudio 服务已启动**（双击 `ImageStudio.exe` 或 `start.bat`；没启动时脚本会明确报错）
-- **技能本机零配置**：服务跑在本机时无需会员访问密钥；实际生图仍需服务端有可用的 ChatGPT 账号并配置 `image_api.engine=chatgpt`
-- 远程/会员场景：配置 ImageStudio 会员访问密钥（由管理员在 设置 → 密钥 创建）；它不是 ChatGPT 账号凭证。后端需由管理员配置 ChatGPT 引擎及可用账号。
+- **技能本机零配置**：服务跑在本机时无需会员访问密钥；实际生图仍需服务端有可用的 ChatGPT 账号和剩余生图额度。
+- 远程/会员场景：配置 ImageStudio 会员访问密钥；它不是 ChatGPT 账号凭证。后端账号由管理员维护。
 
 ## 密钥 / 服务地址查找顺序
 
@@ -34,8 +34,8 @@ python "<skill-dir>\scripts\imagestudio_image_gen.py" --prompt "<提示词>" --s
 
 ## 工作流
 
-1. 判断是文生图还是图生图。
-2. 项目资产存到当前项目内；否则用 `output/imagestudio/`。
+1. 用 `--check` 查看服务与剩余额度；余额为 0 或已到期时不提交生图请求。
+2. 判断是文生图还是图生图，项目资产存到当前项目内；否则用 `output/imagestudio/`。
 3. 保留用户的具体要求，只补充有用的生产性约束。
 4. 运行 `scripts/imagestudio_image_gen.py`。
 5. 用可用的图片查看工具检查产出图片。
