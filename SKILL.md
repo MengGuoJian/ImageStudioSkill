@@ -1,9 +1,9 @@
 ---
 name: imagestudio
-description: 通过 ImageStudio（鱼舟生图）本地服务接口生成或编辑图片；服务端使用 ChatGPT 账号池，处理会员额度与天数限制，技能不直连上游生图 API。用于游戏美术、UI 素材、插画、照片、贴图、样机、图生图编辑、多图合成，当用户提到 ImageStudio、鱼舟生图、生图、画图、图片生成、图像生成、做图、画一张图，或任何图片生成/编辑请求时使用。
+description: 通过 ImageStudio（鱼鱼）本地服务接口生成或编辑图片；服务端使用 ChatGPT 账号池，处理会员额度与天数限制，技能不直连上游生图 API。用于游戏美术、UI 素材、插画、照片、贴图、样机、图生图编辑、多图合成，当用户提到 ImageStudio、鱼鱼、鱼舟生图、生图、画图、图片生成、图像生成、做图、画一张图，或任何图片生成/编辑请求时使用。
 ---
 
-# ImageStudio API 生图（鱼舟生图）
+# ImageStudio API 生图（鱼鱼）
 
 通过本地 **ImageStudio 服务**（默认 `http://127.0.0.1:8020`）的 `/v1/images/*` 接口生图。服务端仅使用 ChatGPT 账号池；技能不直接调用上游，也不接收上游账号凭证。`--base-url` 仅指 ImageStudio 服务地址。
 

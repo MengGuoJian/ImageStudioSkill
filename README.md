@@ -1,6 +1,6 @@
-# ImageStudio Skill（鱼舟生图 · 智能体生图技能）
+# ImageStudio Skill（鱼鱼 · 智能体生图技能）
 
-让 ZCode / Codex / Claude 等智能体安装后即可调用 [ImageStudio（鱼舟生图）](https://github.com/MengGuoJian/FishImagen) 的本地/自建服务接口生图：
+让 ZCode / Codex / Claude 等智能体安装后即可调用 [ImageStudio（鱼鱼）](https://github.com/MengGuoJian/FishImagen) 的本地/自建服务接口生图：
 文生图、图生图（多参考图）、会员额度查询。ImageStudio 服务端配置 ChatGPT 生图引擎并管理账号池；技能只调用 ImageStudio 的 `/v1/images/*`，不直连 ChatGPT 或其他上游 API。
 
 **技能本机零配置**：启动 ImageStudio 服务并确保账号池与剩余生图额度可用后，技能在本机无需再配置访问密钥。
